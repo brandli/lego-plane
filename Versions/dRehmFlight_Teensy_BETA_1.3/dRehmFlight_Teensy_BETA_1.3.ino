@@ -168,12 +168,12 @@ float MagScaleY = 1.0;
 float MagScaleZ = 1.0;
 
 //IMU calibration parameters - calibrate IMU using calculate_IMU_error() in the void setup() to get these values, then comment out calculate_IMU_error()
-float AccErrorX = 0.0;
-float AccErrorY = 0.0;
-float AccErrorZ = 0.0;
-float GyroErrorX = 0.0;
-float GyroErrorY= 0.0;
-float GyroErrorZ = 0.0;
+float AccErrorX = 0.16;
+float AccErrorY = 0.04;
+float AccErrorZ = 0.06;
+float GyroErrorX = -2.33;
+float GyroErrorY= 1.13;
+float GyroErrorZ = -1.47;
 
 //Controller parameters (take note of defaults before modifying!): 
 float i_limit = 25.0;     //Integrator saturation level, mostly for safety (default 25.0)
@@ -218,10 +218,10 @@ const int ch5Pin = 21; //gear (throttle cut)
 const int ch6Pin = 22; //aux1 (free aux channel)
 const int PPM_Pin = 23;
 //OneShot125 ESC pin outputs:
-const int m1Pin = 0;
-const int m2Pin = 1;
-const int m3Pin = 2;
-const int m4Pin = 3;
+const int m1Pin = 0; //orange
+const int m2Pin = 1; //brown
+const int m3Pin = 2; //yellow
+const int m4Pin = 3; //green
 const int m5Pin = 4;
 const int m6Pin = 5;
 //PWM servo or ESC outputs:
@@ -396,7 +396,7 @@ void loop() {
   //Print data at 100hz (uncomment one at a time for troubleshooting) - SELECT ONE:
   //printRadioData();     //Prints radio pwm values (expected: 1000 to 2000)
   //printDesiredState();  //Prints desired vehicle state commanded in either degrees or deg/sec (expected: +/- maxAXIS for roll, pitch, yaw; 0 to 1 for throttle)
-  printGyroData();      //Prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
+  //printGyroData();      //Prints filtered gyro data direct from IMU (expected: ~ -250 to 250, 0 at rest)
   //printAccelData();     //Prints filtered accelerometer data direct from IMU (expected: ~ -2 to 2; x,y 0 when level, z 1 when level)
   //printMagData();       //Prints filtered magnetometer data direct from IMU (expected: ~ -300 to 300)
   //printRollPitchYaw();  //Prints roll, pitch, and yaw angles in degrees from Madgwick filter (expected: degrees, 0 when level)
@@ -468,10 +468,10 @@ void controlMixer() {
    */
    
   //Quad mixing - EXAMPLE
-  m1_command_scaled = thro_des - pitch_PID + roll_PID + yaw_PID; //Front Left
-  m2_command_scaled = thro_des - pitch_PID - roll_PID - yaw_PID; //Front Right
-  m3_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //Back Right
-  m4_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //Back Left
+  m1_command_scaled = thro_des - pitch_PID - roll_PID - yaw_PID; //Front Right
+  m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //Back Right 
+  m3_command_scaled = thro_des - pitch_PID + roll_PID + yaw_PID; //Front Left
+  m4_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //Back Left 
   m5_command_scaled = 0;
   m6_command_scaled = 0;
 
