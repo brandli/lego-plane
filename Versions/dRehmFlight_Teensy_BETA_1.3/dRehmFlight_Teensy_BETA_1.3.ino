@@ -305,8 +305,7 @@ int s1_command_PWM, s2_command_PWM, s3_command_PWM, s4_command_PWM, s5_command_P
 //========================================================================================================================//
 
 void setup() {
-  Serial.begin(500000); //USB serial
-  delay(500);
+
   
   //Initialize all pins
   pinMode(13, OUTPUT); //Pin 13 LED blinker on board, do not modify 
@@ -327,7 +326,17 @@ void setup() {
   //Set built in LED to turn on to signal startup
   digitalWrite(13, HIGH);
 
-  delay(5);
+  //Arm OneShot125 motors
+  m1_command_PWM = 120; //Command OneShot125 ESC from 125 to 250us pulse length
+  m2_command_PWM = 120;
+  m3_command_PWM = 120;
+  m4_command_PWM = 120;
+  m5_command_PWM = 120;
+  m6_command_PWM = 120;
+  armMotors(); //Loop over commandMotors() until ESCs happily arm
+
+  Serial.begin(500000); //USB serial
+  delay(100);
 
   //Initialize radio communication
   radioSetup();
@@ -363,13 +372,13 @@ void setup() {
   //Code will not proceed past here if this function is uncommented!
 
   //Arm OneShot125 motors
-  m1_command_PWM = 125; //Command OneShot125 ESC from 125 to 250us pulse length
-  m2_command_PWM = 125;
-  m3_command_PWM = 125;
-  m4_command_PWM = 125;
-  m5_command_PWM = 125;
-  m6_command_PWM = 125;
-  armMotors(); //Loop over commandMotors() until ESCs happily arm
+  //m1_command_PWM = 120; //Command OneShot125 ESC from 125 to 250us pulse length
+  //m2_command_PWM = 120;
+  //m3_command_PWM = 120;
+  //m4_command_PWM = 120;
+  //m5_command_PWM = 120;
+  //m6_command_PWM = 120;
+  //armMotors(); //Loop over commandMotors() until ESCs happily arm
   
   //Indicate entering main loop with 3 quick blinks
   setupBlink(3,160,70); //numBlinks, upTime (ms), downTime (ms)
