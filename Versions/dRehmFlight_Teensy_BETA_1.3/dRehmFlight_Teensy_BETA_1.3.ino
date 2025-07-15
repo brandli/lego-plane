@@ -182,12 +182,12 @@ float maxPitch = 30.0;    //Max pitch angle in degrees for angle mode (defautl 3
 float maxYaw = 160.0;     //Max yaw rate in deg/sec
 
 float Kp_roll_angle = 0.2;    //Roll P-gain - angle mode (default 0.2)
-float Ki_roll_angle = 0.3;    //Roll I-gain - angle mode (default 0.3)
-float Kd_roll_angle = 0.05;   //Roll D-gain - angle mode (default 0.05, has no effect on controlANGLE2)
+float Ki_roll_angle = 0.03;    //Roll I-gain - angle mode (default 0.3)
+float Kd_roll_angle = 0.005;   //Roll D-gain - angle mode (default 0.05, has no effect on controlANGLE2)
 float B_loop_roll = 0.9;      //Roll damping term for controlANGLE2(), lower is more damping (default 0.9, must be between 0 to 1)
 float Kp_pitch_angle = 0.2;   //Pitch P-gain - angle mode (default 0.2)
-float Ki_pitch_angle = 0.3;   //Pitch I-gain - angle mode (default (0.3)
-float Kd_pitch_angle = 0.05;  //Pitch D-gain - angle mode (default 0.05, has no effect on controlANGLE2)
+float Ki_pitch_angle = 0.03;   //Pitch I-gain - angle mode (default (0.3)
+float Kd_pitch_angle = 0.005;  //Pitch D-gain - angle mode (default 0.05, has no effect on controlANGLE2)
 float B_loop_pitch = 0.9;     //Pitch damping term for controlANGLE2(), lower is more damping (default 0.9, must be between 0 to 1)
 
 float Kp_roll_rate = 0.15;    //Roll P-gain - rate mode (default 0.15)
@@ -197,8 +197,8 @@ float Kp_pitch_rate = 0.15;   //Pitch P-gain - rate mode (default 0.15)
 float Ki_pitch_rate = 0.2;    //Pitch I-gain - rate mode (default 0.2)
 float Kd_pitch_rate = 0.0002; //Pitch D-gain - rate mode (default 0.0002, be careful when increasing too high, motors will begin to overheat!)
 
-float Kp_yaw = 0.3;           //Yaw P-gain (default 0.3)
-float Ki_yaw = 0.05;          //Yaw I-gain (default 0.05)
+float Kp_yaw = 0.2;           //Yaw P-gain (default 0.3)
+float Ki_yaw = 0.0005;          //Yaw I-gain (default 0.05)
 float Kd_yaw = 0.00015;       //Yaw D-gain (default 0.00015, be careful when increasing too high, motors will begin to overheat!)
 
 
@@ -386,6 +386,8 @@ void setup() {
   //If using MPU9250 IMU, uncomment for one-time magnetometer calibration (may need to repeat for new locations)
   //calibrateMagnetometer(); //Generates magentometer error and scale factors to be pasted in user-specified variables section
 
+  calculate_IMU_error();
+
 }
 
 
@@ -413,6 +415,7 @@ void loop() {
   //printMotorCommands(); //Prints the values being written to the motors (expected: 120 to 250)
   //printServoCommands(); //Prints the values being written to the servos (expected: 0 to 180)
   //printLoopRate();      //Prints the time between loops in microseconds (expected: microseconds between loop iterations)
+  //printIMUError();      //Prints the IMU error calculated at startup
 
   //Get vehicle state
   getIMUdata(); //Pulls raw gyro, accelerometer, and magnetometer data from IMU and LP filters to remove noise
@@ -477,9 +480,9 @@ void controlMixer() {
    */
    
   //Quad mixing - EXAMPLE
-  m1_command_scaled = thro_des - pitch_PID - roll_PID - yaw_PID; //Front Right
+  m1_command_scaled = thro_des - pitch_PID - 0.5*roll_PID - yaw_PID; //Front Right
   m2_command_scaled = thro_des + pitch_PID - roll_PID + yaw_PID; //Back Right 
-  m3_command_scaled = thro_des - pitch_PID + roll_PID + yaw_PID; //Front Left
+  m3_command_scaled = thro_des - pitch_PID + 0.5*roll_PID + yaw_PID; //Front Left
   m4_command_scaled = thro_des + pitch_PID + roll_PID - yaw_PID; //Back Left 
   m5_command_scaled = 0;
   m6_command_scaled = 0;
@@ -652,27 +655,7 @@ void calculate_IMU_error() {
   GyroErrorY = GyroErrorY / c;
   GyroErrorZ = GyroErrorZ / c;
 
-  Serial.print("float AccErrorX = ");
-  Serial.print(AccErrorX);
-  Serial.println(";");
-  Serial.print("float AccErrorY = ");
-  Serial.print(AccErrorY);
-  Serial.println(";");
-  Serial.print("float AccErrorZ = ");
-  Serial.print(AccErrorZ);
-  Serial.println(";");
-  
-  Serial.print("float GyroErrorX = ");
-  Serial.print(GyroErrorX);
-  Serial.println(";");
-  Serial.print("float GyroErrorY = ");
-  Serial.print(GyroErrorY);
-  Serial.println(";");
-  Serial.print("float GyroErrorZ = ");
-  Serial.print(GyroErrorZ);
-  Serial.println(";");
-
-  Serial.println("Paste these values in user specified variables section and comment out calculate_IMU_error() in void setup.");
+  //Serial.println("Paste these values in user specified variables section and comment out calculate_IMU_error() in void setup.");
 }
 
 void calibrateAttitude() {
@@ -1453,6 +1436,8 @@ void throttleCut() {
     m4_command_PWM = 120;
     m5_command_PWM = 120;
     m6_command_PWM = 120;
+
+    calculate_IMU_error();
     
     //Uncomment if using servo PWM variables to control motor ESCs
     //s1_command_PWM = 0;
@@ -1688,6 +1673,28 @@ void printServoCommands() {
     Serial.print(F(" s7_command:"));
     Serial.println(s7_command_PWM);
   }
+}
+
+void printIMUError() {
+    Serial.print("float AccErrorX = ");
+    Serial.print(AccErrorX);
+    Serial.println(";");
+    Serial.print("float AccErrorY = ");
+    Serial.print(AccErrorY);
+    Serial.println(";");
+    Serial.print("float AccErrorZ = ");
+    Serial.print(AccErrorZ);
+    Serial.println(";");
+    
+    Serial.print("float GyroErrorX = ");
+    Serial.print(GyroErrorX);
+    Serial.println(";");
+    Serial.print("float GyroErrorY = ");
+    Serial.print(GyroErrorY);
+    Serial.println(";");
+    Serial.print("float GyroErrorZ = ");
+    Serial.print(GyroErrorZ);
+    Serial.println(";");
 }
 
 void printLoopRate() {
